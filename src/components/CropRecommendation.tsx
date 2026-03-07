@@ -9,13 +9,6 @@ const STATES = [
   "Uttarakhand", "West Bengal",
 ];
 
-const MOCK_RESULTS: Record<string, { crop: string; tip: string; fertilizer: string }> = {
-  default: { crop: "Rice", tip: "Ensure proper water management and transplant seedlings at the right stage.", fertilizer: "DAP (Diammonium Phosphate) + Urea" },
-  hot: { crop: "Millet", tip: "Millet thrives in hot, dry conditions. Minimal irrigation needed.", fertilizer: "Single Super Phosphate (SSP)" },
-  wet: { crop: "Jute", tip: "Jute requires high humidity and heavy rainfall. Plant during monsoon.", fertilizer: "Muriate of Potash (MOP) + Urea" },
-  cold: { crop: "Wheat", tip: "Sow wheat in early winter. Ensure 4-5 irrigations during the growth cycle.", fertilizer: "NPK 12:32:16" },
-};
-
 const CropRecommendation = () => {
   const [form, setForm] = useState({
     region: "", nitrogen: "", phosphorus: "", potassium: "",
@@ -28,20 +21,42 @@ const CropRecommendation = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePredict = () => {
-    setLoading(true);
-    setResult(null);
-    setTimeout(() => {
-      const temp = parseFloat(form.temperature) || 25;
-      const humidity = parseFloat(form.humidity) || 60;
-      let key = "default";
-      if (temp > 35) key = "hot";
-      else if (temp < 15) key = "cold";
-      else if (humidity > 80 || parseFloat(form.rainfall) > 200) key = "wet";
-      setResult(MOCK_RESULTS[key]);
-      setLoading(false);
-    }, 1500);
-  };
+const handlePredict = async () => {
+  setLoading(true);
+  setResult(null);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        N: Number(form.nitrogen),
+        P: Number(form.phosphorus),
+        K: Number(form.potassium),
+        temperature: Number(form.temperature),
+        humidity: Number(form.humidity),
+        rainfall: Number(form.rainfall)
+      })
+    });
+
+    const data = await response.json();
+
+    setResult({
+     crop: data.recommended_crop
+      ? data.recommended_crop.charAt(0).toUpperCase() + data.recommended_crop.slice(1)
+      : "Rice",
+      tip: "Based on soil nutrients and climate conditions.",
+      fertilizer: "Recommended NPK mix for this crop."
+    });
+
+  } catch (error) {
+    console.error("Prediction error:", error);
+  }
+
+  setLoading(false);
+};
 
   const isValid = form.region && form.nitrogen && form.phosphorus && form.potassium && form.temperature && form.humidity && form.rainfall;
 

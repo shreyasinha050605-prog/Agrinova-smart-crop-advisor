@@ -21,6 +21,12 @@ const CropRecommendation = () => {
     weatherAdvice: string
     regionCrops: string[]
     aiCrops: string[]
+    confidence: number
+    explanation: string
+    riskAlerts: string[]
+    estimatedYield: number
+    marketSuggestion: { best_market_crop: string; reason: string } | null
+    schemes: string[]
   }>(null);
   const [loading, setLoading] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
@@ -110,6 +116,12 @@ const CropRecommendation = () => {
         weatherAdvice: String(data.weather_advice ?? ""),
         regionCrops: Array.isArray(data.top_state_crops) ? data.top_state_crops : [],
         aiCrops: Array.isArray(data.top_ai_crops) ? data.top_ai_crops : [],
+        confidence: Number(data.confidence ?? 0),
+        explanation: String(data.explanation ?? ""),
+        riskAlerts: Array.isArray(data.risk_alerts) ? data.risk_alerts : [],
+        estimatedYield: Number(data.estimated_yield ?? 0),
+        marketSuggestion: data.market_suggestion ?? null,
+        schemes: Array.isArray(data.schemes) ? data.schemes : [],
       });
     } catch (error) {
       console.error("Prediction error:", error);
@@ -383,6 +395,24 @@ const CropRecommendation = () => {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  </div>
+
+                  {/* Decision Insights */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Lightbulb className="text-primary" size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground font-heading uppercase tracking-wider">
+                        Decision Insights
+                      </span>
+                      <p className="text-foreground"><strong>Confidence:</strong> {result.confidence}%</p>
+                      <p className="text-foreground"><strong>Explanation:</strong> {result.explanation}</p>
+                      <p className="text-foreground"><strong>Risk Alerts:</strong> {result.riskAlerts.length ? result.riskAlerts.join(", ") : "None"}</p>
+                      <p className="text-foreground"><strong>Estimated Yield:</strong> {result.estimatedYield}</p>
+                      <p className="text-foreground"><strong>Market Suggestion:</strong> {result.marketSuggestion ? `${result.marketSuggestion.best_market_crop} (${result.marketSuggestion.reason})` : "N/A"}</p>
+                      <p className="text-foreground"><strong>Schemes:</strong> {result.schemes.length ? result.schemes.join(", ") : "N/A"}</p>
                     </div>
                   </div>
                 </div>

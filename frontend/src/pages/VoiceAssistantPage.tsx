@@ -50,6 +50,12 @@ const VoiceAssistantPage = () => {
     weatherAdvice: string;
     regionCrops: string[];
     aiCrops: string[];
+    confidence: number;
+    explanation: string;
+    riskAlerts: string[];
+    estimatedYield: number;
+    marketSuggestion: { best_market_crop: string; reason: string } | null;
+    schemes: string[];
   }>(null);
   const [running, setRunning] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -300,6 +306,12 @@ const VoiceAssistantPage = () => {
             weatherAdvice: String(prediction.weather_advice ?? ""),
             regionCrops: Array.isArray(prediction.top_state_crops) ? prediction.top_state_crops : [],
             aiCrops: Array.isArray(prediction.top_ai_crops) ? prediction.top_ai_crops : [],
+            confidence: Number(prediction.confidence ?? 0),
+            explanation: String(prediction.explanation ?? ""),
+            riskAlerts: Array.isArray(prediction.risk_alerts) ? prediction.risk_alerts : [],
+            estimatedYield: Number(prediction.estimated_yield ?? 0),
+            marketSuggestion: prediction.market_suggestion ?? null,
+            schemes: Array.isArray(prediction.schemes) ? prediction.schemes : [],
           };
           setResult(nextResult);
           pushMessage("system", `${tr("resultReadPrefix", currentLang)} ${nextResult.crop}`);
@@ -355,6 +367,12 @@ const VoiceAssistantPage = () => {
       `${t("weatherInsight")}: ${result.weatherAdvice}.`,
       `${t("commonCropsIn")} ${form.region}: ${result.regionCrops.join(", ")}.`,
       `${t("topAiCropSuggestions")}: ${result.aiCrops.join(", ")}.`,
+      `Confidence: ${result.confidence} percent.`,
+      `Explanation: ${result.explanation}.`,
+      `Risk Alerts: ${result.riskAlerts.length ? result.riskAlerts.join(", ") : "None"}.`,
+      `Estimated Yield: ${result.estimatedYield}.`,
+      `Market Suggestion: ${result.marketSuggestion ? `${result.marketSuggestion.best_market_crop} ${result.marketSuggestion.reason}` : "Not available"}.`,
+      `Schemes: ${result.schemes.length ? result.schemes.join(", ") : "Not available"}.`,
     ].join(" ");
     void speak(script, lang);
   };
@@ -419,6 +437,12 @@ const VoiceAssistantPage = () => {
                 <p><span className="font-semibold">{t("weatherInsight")}:</span> {result.weatherAdvice}</p>
                 <p><span className="font-semibold">{t("commonCropsIn")} {form.region}:</span> {result.regionCrops.join(", ")}</p>
                 <p><span className="font-semibold">{t("topAiCropSuggestions")}:</span> {result.aiCrops.join(", ")}</p>
+                <p><span className="font-semibold">Confidence:</span> {result.confidence}%</p>
+                <p><span className="font-semibold">Explanation:</span> {result.explanation}</p>
+                <p><span className="font-semibold">Risk Alerts:</span> {result.riskAlerts.length ? result.riskAlerts.join(", ") : "None"}</p>
+                <p><span className="font-semibold">Estimated Yield:</span> {result.estimatedYield}</p>
+                <p><span className="font-semibold">Market Suggestion:</span> {result.marketSuggestion ? `${result.marketSuggestion.best_market_crop} (${result.marketSuggestion.reason})` : "N/A"}</p>
+                <p><span className="font-semibold">Schemes:</span> {result.schemes.length ? result.schemes.join(", ") : "N/A"}</p>
                 <button
                   onClick={readAloud}
                   className="w-full bg-primary text-primary-foreground font-heading font-semibold py-3 rounded-xl"
